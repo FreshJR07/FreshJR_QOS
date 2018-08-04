@@ -1,6 +1,4 @@
-# FreshJR QOS - Asus Adaptive QOS Modification SCript
-
-This script modifies AdaptiveQOS default parameters on Asus Routers!
+# FreshJR QOS - Modification Script for AdaptiveQOS on Asus Routers
 
 This script has been tested on ASUS AC-68U, running RMerlin FW 384.4, using Adaptive QOS with Manual Bandwidth Settings
 
@@ -16,9 +14,9 @@ This script has been tested on ASUS AC-68U, running RMerlin FW 384.4, using Adap
 
 ## Full Overview:
 
-See <a href="https://www.snbforums.com/threads/release-freshjr-adaptive-qos-improvements-custom-rules-and-inner-workings.36836/" rel="nofollow">SmallNetBuilder</a> for more information
+See <a href="https://www.snbforums.com/threads/release-freshjr-adaptive-qos-improvements-custom-rules-and-inner-workings.36836/" rel="nofollow">SmallNetBuilder</a> for more information & discussion
 
-## Install:
+## Installation:
 
 In your SSH Client:
 
