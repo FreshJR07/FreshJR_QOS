@@ -114,9 +114,6 @@
 			
 			#iptables -D POSTROUTING -t mangle -o br0 -d 192.168.2.100/30 -m mark --mark 0x80000000/0x8000ffff -p tcp -m multiport ! --sports 443,80  -j MARK --set-mark ${Gaming_mark_down} &> /dev/null    	#Gaming (3/3) - Routes Unidentified Traffic into "Gaming", instead of "Others", for LAN clients specified
 			#iptables -A POSTROUTING -t mangle -o br0 -d 192.168.2.100/30 -m mark --mark 0x80000000/0x8000ffff -p tcp -m multiport ! --sports 443,80  -j MARK --set-mark ${Gaming_mark_down}
-
-			#iptables -D POSTROUTING -t mangle -o br0 -d 192.168.2.100/30 -m mark --mark 0x80000000/0x8000ffff -p udp -m multiport ! --sports 443,80  -j MARK --set-mark ${Gaming_mark_down} &> /dev/null    	#Gaming (3/3) - Routes Unidentified Traffic into "Gaming", instead of "Others", for LAN clients specified
-			#iptables -A POSTROUTING -t mangle -o br0 -d 192.168.2.100/30 -m mark --mark 0x80000000/0x8000ffff -p udp -m multiport ! --sports 443,80  -j MARK --set-mark ${Gaming_mark_down}
 			
 		##DOWNLOAD (INCOMMING TRAFFIC) CUSTOM RULES END HERE
 	}
@@ -145,9 +142,6 @@
 			
 			iptables -D POSTROUTING -t mangle -o $wan -m mark --mark 0x40080000/0xc03f0000 -p tcp --sport 443 -j MARK --set-mark ${Default_mark_up} &> /dev/null  	#Gaming (2/3) - Routes "Gaming" traffic going to port 80 into "Defaults"
 			iptables -A POSTROUTING -t mangle -o $wan -m mark --mark 0x40080000/0xc03f0000 -p tcp --sport 443 -j MARK --set-mark ${Default_mark_up}
-			
-			#iptables -D POSTROUTING -t mangle -o $wan -s 192.168.2.100/30 -m mark --mark 0x40000000/0x4000ffff -p tcp -m multiport ! --dports 80,443 -j MARK --set-mark ${Gaming_mark_up} &> /dev/null 	#Gaming (3/3) - Routes Unidentified Traffic into "Gaming", instead of "Others", from specified LAN devices in rule (line 1/2)
-			#iptables -A POSTROUTING -t mangle -o $wan -s 192.168.2.100/30 -m mark --mark 0x40000000/0x4000ffff -p tcp -m multiport ! --dports 80,443 -j MARK --set-mark ${Gaming_mark_up}
 			
 			#iptables -D POSTROUTING -t mangle -o $wan -s 192.168.2.100/30 -m mark --mark 0x40000000/0x4000ffff -p tcp -m multiport ! --dports 80,443 -j MARK --set-mark ${Gaming_mark_up} &> /dev/null 	#Gaming (3/3) - Routes Unidentified Traffic into "Gaming", instead of "Others", from specified LAN devices in rule (line 1/2)
 			#iptables -A POSTROUTING -t mangle -o $wan -s 192.168.2.100/30 -m mark --mark 0x40000000/0x4000ffff -p tcp -m multiport ! --dports 80,443 -j MARK --set-mark ${Gaming_mark_up}
