@@ -1,8 +1,10 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-' Modification on-top of RMerlins QoS_Stats page taken from 384.9_alpha2-g2ee0afa1c
-' QoS_Stats.asp was modified so that the QoS Statistics page will reflect changes arising
-' from the FreshJR_QOS Modification Script instead default AdaptiveQoS behavior
-' Beta1 tested with FreshJR_QOS v7 on an AC-68U running 384.9_alpha2-g2ee0afa1c
+<!-- 
+ Modification on-top of RMerlins QoS_Stats page taken from 384.9_alpha2-g2ee0afa1c
+ QoS_Stats.asp was modified so that the QoS Statistics page will reflect changes arising
+ from the FreshJR_QOS Modification Script instead default AdaptiveQoS behavior
+ Beta1 tested with FreshJR_QOS v7 on an AC-68U running 384.9_alpha2-g2ee0afa1c
+ -->
 <html xmlns="http://www.w3.org/1999/xhtml">
 <html xmlns:v>
 <head>
@@ -12,7 +14,7 @@
 <meta HTTP-EQUIV="Expires" CONTENT="-1">
 <link rel="shortcut icon" href="images/favicon.png">
 <link rel="icon" href="images/favicon.png">
-<title><#705#> - FreshJR QoS Statistics</title>
+<title><#705#> - QoS Statistics</title>
 <link rel="stylesheet" type="text/css" href="index_style.css">
 <link rel="stylesheet" type="text/css" href="form_style.css">
 <link rel="stylesheet" type="text/css" href="usp_style.css">
@@ -39,7 +41,7 @@ if ("<% nvram_get("qos_enable "); %>" == 0) { // QoS disabled
 }
 if (qos_mode == 2) {
     var bwdpi_app_rulelist = "<% nvram_get("bwdpi_app_rulelist "); %>".replace(/&#60/g, "<");
-    var category_title = ["Net Control Packets", "<#752#>", "<#762#>", "<#756#>", "<#764#>", "<#751#>", "<#757#>", "Game Data Transfer"];
+    var category_title = ["Net Control Packets", "<#752#>", "<#762#>", "<#756#>", "<#764#>", "<#751#>", "<#757#>", "Game Transferring"];
     var cat_id_array = [
         [9, 20],
         [8],
@@ -174,7 +176,7 @@ function draw_conntrack_table() {
 			bwdpi_conntrack[i][5] = "<span style=\"padding: 4px 8px 4px 8px; color: white; background-color: " + color[bwdpi_cindex_voip] + ";\">" + label + "</span>";
 		}
 		else if (bwdpi_conntrack[i][7] == 8 && (bwdpi_conntrack[i][4] == 80 || bwdpi_conntrack[i][4] == 443) && bwdpi_conntrack[i][0] == "tcp" )		{
-			label = "Game Data Transfer: " + bwdpi_conntrack[i][5];
+			label = "Game Transferring: " + bwdpi_conntrack[i][5];
 			bwdpi_conntrack[i][5] = "<span style=\"padding: 4px 8px 4px 8px; color: white; background-color: " + color[bwdpi_cindex_default] + ";\">" + label + "</span>";
 		}
         else{ 
@@ -401,9 +403,9 @@ function draw_chart(data_array, ctx, pie) {
 <tbody>
 <tr bgcolor="#4D595D">
 <td valign="top">
-<div>&nbsp;</div>
-<div class="formfonttitle">QoS - Traffic classification Statistics</div>
-<div style="margin:10px 0 10px 5px;" class="splitLine"></div>
+    <div class="formfonttitle" style="display: inline-block; margin: 10px;">QoS - Traffic classification Statistics </div>
+    <div style="float: right; font-size:75%;color:#FFCC00; display: inline-block; margin:5px;">FreshJR Mod</div>
+	<div style="margin:5 0 5px 5px;" class="splitLine"></div>
 <table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 <tr>
 <th>Automatically refresh data every</th>
