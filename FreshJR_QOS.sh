@@ -1806,10 +1806,10 @@ update(){
 	echo "Checking for updates"
 	echo ""
 	url="https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh"
-	remote_version=$(curl -fsN --retry 3 "$url" | grep "^version=" | sed -e 's/version=//')
+	remotever=$(curl -fsN --retry 3 ${url} | grep "^version=" | sed -e s/version=//)
 
 	if [ "$version" != "$remotever" ]; then
-		echo " FreshJR_QOS_v${remotever} is now available!"
+		echo " FreshJR QOS v${remotever} is now available!"
 		echo ""
 		echo -n " Would you like to update now? [1=Yes 2=No] : "
 		read yn
@@ -1836,7 +1836,7 @@ update(){
 	echo -e "Installing: FreshJR_QOS_v${remotever}"
 	echo ""
 	echo "Curl Output:"
-	curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o /jffs/scripts/www_FreshJR_QoS_Stats.asp && /jffs/scripts/FreshJR_QOS -install
+	curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o /jffs/scripts/www_FreshJR_QoS_Stats.asp && sh /jffs/scripts/FreshJR_QOS -install
 	exit
 }
 
@@ -2110,10 +2110,21 @@ case "$arg1" in
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/script_usbmount 2>/dev/null						#remove FreshJR_QOS from script_usbmount - only used on stock ASUS firmware installs
 	cru d FreshJR_QOS
 	rm -f /jffs/scripts/FreshJR_QOS
+	
+	umount /www/QoS_Stats.asp &> /dev/null 			#suppresses error if present
+	mount -o bind /www/QoS_Stats.asp /www/QoS_Stats.asp	
+	umount /www/QoS_Stats.asp &> /dev/null 
+	rm -f /jffs/scripts/www_FreshJR_QoS_Stats.asp
+	
 	if [ "$(nvram get script_usbmount)" == "/jffs/scripts/script_usbmount" ] ; then												   #only used on stock ASUS firmware installs
 		nvram unset script_usbmount
+		nvram set fb_comment=""
+		nvram set fb_email_dbg=""
 		nvram commit
 	fi
+	nvram set fb_comment=""
+	nvram set fb_email_dbg=""
+	nvram commit	
 	echo -e  "\033[1;32m FreshJR QOS has been uninstalled \033[0m"
 	;;
  'disable')																		## TURNS OFF SCRIPT BUT KEEP FILES
