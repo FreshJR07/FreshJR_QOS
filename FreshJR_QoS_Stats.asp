@@ -185,7 +185,7 @@ if (qos_mode == 2) {
         bwdpi_app_rulelist = "9,20<8<4<0,5,6,15,17<13,24<1,3,14<7,10,11,21,23<<";
         bwdpi_app_rulelist_row = bwdpi_app_rulelist.split("<");
     }
-    var category_title = ["Net Control Packets", "Gaming", "VoIP and Instant Messaging", "Others", "Web Surfing", "Video and Audio Streaming", "File Transferring", "Game Transferring", "Extra"];
+    var category_title = ["Net Control Packets", "Gaming", "Video and Audio Streaming", "VoIP and Instant Messaging", "Web Surfing", "File Transferring", "Others", "Game Transferring"];
     var cat_id_array = [
         [9, 20],
         [8],
