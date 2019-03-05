@@ -1,6 +1,6 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- 
-##FreshJR_QOS_v8.1 released 03/03/2019
+##FreshJR_QOS_v8.2 released 03/05/2019
 Modification on-top of RMerlins QoS_Stats page taken from 384.9
  -->
 <html xmlns="http://www.w3.org/1999/xhtml">

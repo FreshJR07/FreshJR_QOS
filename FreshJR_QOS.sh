@@ -1,7 +1,7 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.1
-release=03/03/2019
+version=8.2
+release=03/05/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
 # Script Changes Unidentified traffic destination away from "Defaults" into "Others"
@@ -1823,6 +1823,7 @@ update(){
 	
 	echo -en "\033c\e[3J"		#clear screen
 	echo -en '\033[?7l'			#disable line wrap
+	printf '\e[8;30;120t'		#set height/width of terminal
 	echo -e  "\033[1;32mFreshJR QOS v${version} \033[0m"
 	echo "Checking for updates"
 	echo ""
