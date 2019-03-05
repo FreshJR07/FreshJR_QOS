@@ -1,7 +1,7 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8
-release=02/22/2019
+version=8.1
+release=03/03/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
 # Script Changes Unidentified traffic destination away from "Defaults" into "Others"
@@ -36,7 +36,7 @@ release=02/22/2019
 #
 ##For discussion visit this thread:
 ##  https://www.snbforums.com/threads/release-freshjr-adaptive-qos-improvements-custom-rules-and-inner-workings.36836/
-##  https://github.com/FreshJR07/FreshJR_QOS (Source + Backup Link)
+##  https://github.com/FreshJR07/FreshJR_QOS (Source Code + Backup Link)
 #
 ##License
 ##  FreshJR_QOS is free to use under the GNU General Public License, version 3 (GPL-3.0).
@@ -47,7 +47,7 @@ release=02/22/2019
 #
 ### IF YOU MANUALLY ADD RULES TO AREA BELOW THEN KEEP IN MIND THAT YOUR CHANGES WILL TAKE EFFECT BUT WILL NOT BE REFLECTED UNDER THE TRACKED CONNECTIONS SECTION OF THE WEBUI. 
 ### FOR HARDCODED CHANGES TO BE REFLECTED IN TRACKED CONNECTIONS SECTION OF THE WEBUI THEN YOU ALSO HAVE TO MODIFY THE CORRESPONDING JAVASCRIPT CODE IN /jffs/scripts/FreshJR_QoS_Stats.asp
-### INSTEAD OF HARDCODED CHANGES (legacy method) YOU CAN USE THE SCRIPTS -RULES COMMAND OR ENTER THE WEBUI PAGE TO ENTER RULES. CHANGES VIA THOSE METHODS WILL BE REFLECTED IN THE TRACKED CONNECTIONS TABLE.
+### INSTEAD OF HARDCODED CHANGES (legacy method) YOU CAN USE THE SCRIPTS -RULES COMMAND OR ENTER THE WEBUI PAGE FOR CREATING RULES AND TOSE CHANGES WILL BE REFLECTED IN THE TRACKED CONNECTIONS TABLE.
 #
 ####################  MODIFY BELOW WITH CAUTION   #####################
 ####################  MODIFY BELOW WITH CAUTION   #####################
@@ -78,7 +78,7 @@ release=02/22/2019
 			iptables -A POSTROUTING -t mangle -o br0 -d $gameCIDR -m mark --mark 0x80000000/0x8000ffff -p tcp -m multiport ! --sports 80,433  -j MARK --set-mark ${Gaming_mark_down}
 
 			iptables -D POSTROUTING -t mangle -o br0 -d $gameCIDR -m mark --mark 0x80000000/0x8000ffff -p udp -m multiport ! --sports 80,443  -j MARK --set-mark ${Gaming_mark_down} &> /dev/null    	#Gaming - (Incoming "Unidentified" UDP traffic, for devices specified, not from WAN source ports 80 & 443 -->  Gaming)
-			iptables -A POSTROUTING -t mangle -o br0 -d $gameCIDR -m mark --mark 0x80000000/0x8000ffff -p udp -m multiport ! --sports 80,433  -j MARK --set-mark ${Gaming_mark_down}
+			iptables -A POSTROUTING -t mangle -o br0 -d $gameCIDR -m mark --mark 0x80000000/0x8000ffff -p udp -m multiport ! --sports 80,443  -j MARK --set-mark ${Gaming_mark_down}
 		fi
 		
 		if ! [ -z "$ip1_down" ] ; then													#Script Interactively Defined Rule 1
@@ -132,7 +132,7 @@ release=02/22/2019
 
 	iptable_up_rules(){
 		
-		#wan="ppp0"				## WAN interface over-ride for upload traffic
+		#wan="ppp0"				## WAN interface over-ride for upload traffic if automatic detection is not working properly
 								
 		echo "Applying - Iptable Up   Rules ($wan)"
 
@@ -298,6 +298,9 @@ release=02/22/2019
 ####################  DO NOT MODIFY BELOW  #####################	
 ####################  DO NOT MODIFY BELOW  #####################	
 ####################  DO NOT MODIFY BELOW  #####################	
+
+#path of FreshJR_QoS_Stats.asp
+webpath='/jffs/scripts/www_FreshJR_QoS_Stats.asp'
 
 #marks for iptable rules	 
 	Net_mark_down="0x80090001"
@@ -591,7 +594,6 @@ appdb(){
 	else
 		echo "AppDB search parameter has to be more specfic"
 	fi
-	read -p "(Press any key to exit)" exit
 }
 
 ## Main Menu -debug function
@@ -631,8 +633,6 @@ debug(){
 	logger -t "adaptive QOS" -s "Upciels -- $UpCeil0, $UpCeil1, $UpCeil2, $UpCeil3, $UpCeil4, $UpCeil5, $UpCeil6, $UpCeil7"
 	logger -t "adaptive QOS" -s "Upbursts -- $UpBurst0, $UpBurst1, $UpBurst2, $UpBurst3, $UpBurst4, $UpBurst5, $UpBurst6, $UpBurst7"
 	logger -t "adaptive QOS" -s "UpCbursts -- $UpCburst0, $UpCburst1, $UpCburst2, $UpCburst3, $UpCburst4, $UpCburst5, $UpCburst6, $UpCburst7"
-	echo ""
-	read -p "(Press any key to exit)" exit
 	echo -en '\033[?7h'			#enable line wrap
 }
 
@@ -653,7 +653,7 @@ debug2(){
 	parse_tcrule "${r3}" "${d3}" tc3_down tc3_up
 	parse_tcrule "${r4}" "${d4}" tc4_down tc4_up
 	echo -en '\033[?7l'			#disable line wrap
-	
+		
 	echo "Game CIDR: ${gameCIDR}"
 	echo ""
 	if [ "$(echo ${ip1_down} | grep -c "both")" -ge "1" ] ; then
@@ -682,8 +682,8 @@ debug2(){
 		echo "Rule3 Up  : ${ip3_up//both/tcp}"
 		echo "          : ${ip3_up//both/udp}"
 	else
-		echo "Rule3 Down: ${ip1_down}"
-		echo "Rule3 Up  : ${ip1_up}"
+		echo "Rule3 Down: ${ip3_down}"
+		echo "Rule3 Up  : ${ip3_up}"
 	fi
 	echo ""
 	if [ "$(echo ${ip4_down} | grep -c "both")" -ge "1" ] ; then
@@ -707,9 +707,7 @@ debug2(){
 	echo ""
 	echo "AppDB4 Down:  ${tc4_down}"	
 	echo "AppDB4 Up  :  ${tc4_up}"
-	
-	echo -en '\033[?7h'			#enable line wrap
-	read -p "(Press any key to exit)" exit
+
 	echo -en '\033[?7h'			#enable line wrap
 }
 
@@ -1010,6 +1008,7 @@ rates(){
 			;;
 		10) 
 		    save_nvram
+			[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 			return 1 
 			;;
 		11) 
@@ -1056,6 +1055,7 @@ rules(){
 		'9') apprule r4 d4 "Appdb 4" ;;
 		'10') 
 		    save_nvram
+			[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 			return 1 
 			;;
 		'11') 
@@ -1072,13 +1072,14 @@ iprule()
 	echo -en '\033[?7l'			#disable line wrap
 	echo -e  "\033[1;32mFreshJR QOS v${version} \033[0m"
 	echo "Modifying ${8}"
-	echo -n "1)  Local IP          " && eval "echo \${$1}"
-	echo -n "2)  Remote IP         " && eval "echo \${$2}"
-	echo -n "3)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
-	echo -n "4)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate
-	echo -n "5)  Protocol          " && eval "echo \${$3}"
-	echo -n "6)  QoS Mark          " && eval "echo \${$6}"
-	echo -n "7)  Destination       " && eval "dst_2_name \${$7}"
+	echo -n "1)  Name              " && sed -nE 's/var rulename'${8//[^0-9]/}'="(.*?)";/\1/p' "${webpath}"
+	echo -n "2)  Local IP          " && eval "echo \${$1}"
+	echo -n "3)  Remote IP         " && eval "echo \${$2}"
+	echo -n "4)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
+	echo -n "5)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate
+	echo -n "6)  Protocol          " && eval "echo \${$3}"
+	echo -n "7)  QoS Mark          " && eval "echo \${$6}"
+	echo -n "8)  Destination       " && eval "dst_2_name \${$7}"
 	echo ""
 	echo "9)  Reset / Disable"
 	echo "0)  Go Back"
@@ -1089,7 +1090,28 @@ iprule()
 		read input
 		echo -en "\033[1A\r\033[0K" 		#clear user input prompt
 			case $input in
-				1) #local ip 
+				1) #name
+					echo -ne "\033[1;32m"
+					echo  "  WebUI Rule Name"
+					echo  ""
+					echo -ne  "\033[0m"
+					echo -n "  Name(${8//[^0-9]/})="
+					#read user input
+					read input
+					if [ -z $input ] ; then
+						input="${8// /}"
+					fi
+					echo -en "\033[1A\r\033[0K" 
+					echo -en "\033[1A\r\033[0K"  
+					echo -en "\033[1A\r\033[0K"  
+					#make changes to WebUI.asp page
+					echo "$( cat "${webpath}" | sed -E 's/var rulename'"${8//[^0-9]/}"'="(.*?)";/var rulename'"${8//[^0-9]/}"'="'"${input}"'";/')"  > "${webpath}"
+					#update table entry
+					echo -en "\033[3;0f\033[0K"  #move to line 3 pos 0 \ erase to end
+					echo -n "1)  Name              " && sed -nE 's/var rulename'${8//[^0-9]/}'="(.*?)";/\1/p' "${webpath}"
+					;;
+					
+				2) #local ip 
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  Local IP      Syntax: 192.168.X.XXX      or !192.168.X.XXX"
@@ -1106,10 +1128,10 @@ iprule()
 					echo -en "\033[1A\r\033[0K" 
 					echo -en "\033[1A\r\033[0K"
 					#update table entry
-					echo -en "\033[3;0f\033[0K"  #move to line 3 pos 0 \ erase to end
-					echo -n "1)  Local IP          " && eval "echo \${$1}"
+					echo -en "\033[4;0f\033[0K"  #move to line 4 pos 0 \ erase to end
+					echo -n "2)  Local IP          " && eval "echo \${$1}"
 					;;
-				2) #remote ip
+				3) #remote ip
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  Remote IP Syntax: 75.75.75.75      or !75.75.75.75     "
@@ -1126,10 +1148,10 @@ iprule()
 					echo -en "\033[1A\r\033[0K"  
 					echo -en "\033[1A\r\033[0K"  
 					#update table entry
-					echo -en "\033[4;0f\033[0K"  #move to line 4 pos 0 \ erase to end
-					echo -n "2)  Remote IP         " && eval "echo \${$2}"
+					echo -en "\033[5;0f\033[0K"  #move to line 5 pos 0 \ erase to end
+					echo -n "3)  Remote IP         " && eval "echo \${$2}"
 					;;
-				3) #local port
+				4) #local port
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  Local Port Syntax: XXX         or !XXX"
@@ -1184,14 +1206,14 @@ iprule()
 						echo -en "\033[1A\r\033[0K"  
 					fi
 						#update table entry
+						echo -en "\033[8;0f\033[0K"  #move to line 8 pos 0 \ erase to end
 						echo -en "\033[7;0f\033[0K"  #move to line 7 pos 0 \ erase to end
 						echo -en "\033[6;0f\033[0K"  #move to line 6 pos 0 \ erase to end
-						echo -en "\033[5;0f\033[0K"  #move to line 5 pos 0 \ erase to end
-						echo -n "3)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
-						echo -n "4)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
-						echo -n "5)  Protocol          " && eval "echo \${$3}"
+						echo -n "4)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
+						echo -n "5)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
+						echo -n "6)  Protocol          " && eval "echo \${$3}"
 					;;
-				4) #remote port 
+				5) #remote port 
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  Remote Port Syntax: XXX         or !XXX"
@@ -1246,14 +1268,14 @@ iprule()
 						echo -en "\033[1A\r\033[0K"  
 					fi
 						#update table entry
+						echo -en "\033[8;0f\033[0K"  #move to line 8 pos 0 \ erase to end
 						echo -en "\033[7;0f\033[0K"  #move to line 7 pos 0 \ erase to end
 						echo -en "\033[6;0f\033[0K"  #move to line 6 pos 0 \ erase to end
-						echo -en "\033[5;0f\033[0K"  #move to line 5 pos 0 \ erase to end
-						echo -n "3)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
-						echo -n "4)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
-						echo -n "5)  Protocol          " && eval "echo \${$3}"
+						echo -n "4)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
+						echo -n "5)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
+						echo -n "6)  Protocol          " && eval "echo \${$3}"
 					;;
-				5) #protocol
+				6) #protocol
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  Protocol Syntax: tcp"
@@ -1277,15 +1299,14 @@ iprule()
 					echo -en "\033[1A\r\033[0K" 
 					echo -en "\033[1A\r\033[0K" 
 					#update table entry
-					echo -en "\033[7;0f\033[0K"  #move to line 7 pos 0 \ erase to end
+					echo -en "\033[8;0f\033[0K"  #move to line 8 pos 0 \ erase to end
 					echo -en "\033[7;0f\033[0K"  #move to line 7 pos 0 \ erase to end
 					echo -en "\033[6;0f\033[0K"  #move to line 6 pos 0 \ erase to end
-					echo -en "\033[5;0f\033[0K"  #move to line 5 pos 0 \ erase to end
-					echo -n "3)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
-					echo -n "4)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
-					echo -n "5)  Protocol          " && eval "echo \${$3}"
+					echo -n "4)  Local Port        " && [ -z $(eval "echo \${$4}") ] && echo || eval "echo \${$3} \${$4}"	#if ${4} is blank then leave field blank else populate
+					echo -n "5)  Remote Port       " && [ -z $(eval "echo \${$5}") ] && echo || eval "echo \${$3} \${$5}"	#if ${5} is blank then leave field blank else populate	
+					echo -n "6)  Protocol          " && eval "echo \${$3}"
 					;;
-				6) #qos mark
+				7) #qos mark
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo    "  QoS Mark Syntax (hex): XXYYYY"
@@ -1303,10 +1324,10 @@ iprule()
 					echo -en "\033[1A\r\033[0K"  
 					echo -en "\033[1A\r\033[0K" 
 					#update table entry
-					echo -en "\033[8;0f\033[0K"  #move to line 8 pos 0 \ erase to end
-					echo -n "6)  QoS Mark          " && eval "echo \${$6}"
+					echo -en "\033[9;0f\033[0K"  #move to line 9 pos 0 \ erase to end
+					echo -n "7)  QoS Mark          " && eval "echo \${$6}"
 					;;
-				7) #packetdestination
+				8) #packetdestination
 					#show valid syntax
 					echo -ne "\033[1;32m"
 					echo "  Destination Syntax: 0-7"
@@ -1351,8 +1372,8 @@ iprule()
 					echo -en "\033[1A\r\033[0K"
 					echo -en "\033[1A\r\033[0K"
 					#update table entry
-					echo -en "\033[9;0f\033[0K"  #move to line 9 pos 0 \ erase to end
-					echo -n "7)  Destination       " && eval "dst_2_name \${$7}"   #if all params empty leave blank else populate
+					echo -en "\033[10;0f\033[0K"  #move to line 10 pos 0 \ erase to end
+					echo -n "8)  Destination       " && eval "dst_2_name \${$7}"   #if all params empty leave blank else populate
 					;;
 				9) #reset
 					eval "$1=''"
@@ -1362,12 +1383,13 @@ iprule()
 					eval "$5=''"
 					eval "$6=''"
 					eval "$7=''"
-					#iprule "${1}" "${2}" "${3}" "${4}" "${5}" "${6}" "${7}" "${8}"
+					echo "$( cat "${webpath}" | sed -E 's/var rulename'"${8//[^0-9]/}"'="(.*?)";/var rulename'"${8//[^0-9]/}"'="Rule'"${8//[^0-9]/}"'";/')"  > "${webpath}"
 					in_progress=0
 					;;
-				0) in_progress=0 ;;
+				0) in_progress=0 
+					;;
 			esac
-		echo -en "\033[14;0f"	#set cursor to user prompt original position
+		echo -en "\033[15;0f"	#set cursor to user prompt original position
 	done
 	rules #go back to rules page after modifying individual rule
 }
@@ -1641,9 +1663,10 @@ parse_iptablerule() {
 		fi
 	fi
 
+
 	#local port
 	if [ "$( echo ${4} | wc -c )" -gt "1" ] ; then
-		if [ "$( echo ${4} | tr -cd ',' | wc -c )" -gt "1" ] ; then
+		if [ "$( echo ${4} | tr -cd ',' | wc -c )" -ge "1" ] ; then
 			#multiport XXX,YYY,ZZZ
 			DOWN_Lport="-m multiport ${4//[^!]*/} --dports ${4//!/}"
 			UP_Lport="-m multiport ${4//[^!]*/} --sports ${4//!/}"
@@ -1660,7 +1683,7 @@ parse_iptablerule() {
 
 	#remote port
 	if [ "$( echo ${5} | wc -c )" -gt "1" ] ; then
-		if [ "$( echo $5 | tr -cd ',' | wc -c )" -gt "1" ] ; then
+		if [ "$( echo ${5} | tr -cd ',' | wc -c )" -ge "1" ] ; then
 			#multiport XXX,YYY,ZZZ
 			DOWN_Rport="-m multiport ${5//[^!]*/} --sports ${5//!/}"
 			UP_Rport="-m multiport ${5//[^!]*/} --dports ${5//!/}"
@@ -1673,7 +1696,7 @@ parse_iptablerule() {
 		DOWN_Rport=""
 		UP_Rport=""
 	fi
-
+	
 	#match mark
 	if [ "$( echo ${6} | wc -c )" -eq "7" ] ; then
 		if [ "$( echo ${6} | tail -c -5 )" == "****" ] ; then
@@ -1709,7 +1732,7 @@ parse_iptablerule() {
 			;;
 		3)
 			DOWN_dst="-j MARK --set-mark ${VOIP_mark_down}"
-			UP_dst="$-j MARK --set-mark {VOIP_mark_up}"
+			UP_dst="-j MARK --set-mark ${VOIP_mark_up}"
 			;;
 		4)
 			DOWN_dst="-j MARK --set-mark ${Web_mark_down}"
@@ -1779,8 +1802,8 @@ about(){
 	echo ""
 	echo 'Gaming Rule Note'
 	echo '  Gaming traffic originating from ports 80 & 443 is primarily downloads & patches (some lobby/login protocols mixed within)'
-	echo '  Manually configurable rule will take untracked traffic, not originating from 80/443, for specified devices and place it into Gaming'
-	echo '  Use of this gaming rule REQUIRES devices to have a continous static ip assignment && this range needs to be defined in the script'
+	echo '  Manually configurable rule will take untracked traffic for specified devices, not originating from server ports 80/443, and place it into Gaming'
+	echo '  Use of this gaming rule REQUIRES devices to have a continous static ip assignment && this range needs to be passed into the script'
 	echo ""
 	echo "How to Use Advanced Functionality"
 	echo '  Custom rules can be created within the WebUI OR by running the -rules command:'
@@ -1793,8 +1816,6 @@ about(){
 	echo '  Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings'
 	echo '  Copyright (C) 2017-2019 FreshJR - All Rights Reserved '
 	echo ""
-	read -p "(Press any key to exit)" exit
-	echo -en "\033c"		#clear screen
 	echo -en '\033[?7h'			#enable line wrap
 }
 
@@ -1817,7 +1838,6 @@ update(){
 		if ! [ "${yn}" = "1" ] ; then
 			echo "No Changes have been made"
 			echo ""
-			read -p "(Press any key to exit)" exit
 			return 0
 		fi
 	else
@@ -1828,7 +1848,6 @@ update(){
 		if ! [ "${yn}" = "1"  ] ; then
 			echo "No Changes have been made"
 			echo ""
-			read -p "(Press any key to exit)" exit
 			return 0
 		fi
 	fi
@@ -1836,28 +1855,56 @@ update(){
 	echo -e "Installing: FreshJR_QOS_v${remotever}"
 	echo ""
 	echo "Curl Output:"
-	curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o /jffs/scripts/www_FreshJR_QoS_Stats.asp && sh /jffs/scripts/FreshJR_QOS -install
+	curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o "${webpath}" && sh /jffs/scripts/FreshJR_QOS -install
 	exit
 }
 
+prompt_restart(){
+	echo ""
+	echo -en "  Would you like to \033[1;32m[Restart QoS]\033[0m for modifications to take effect? [1=Yes 2=No] : "
+	read yn
+	echo ""
+	if [ "${yn}" = "1" ] ; then
+		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then			#RMerlin install
+			service "restart_qos;restart_firewall"
+		else																								#Stock Install
+			service "restart_qos;restart_firewall"
+			cru a FreshJR_QOS_run_once "* * * * * /jffs/scripts/FreshJR_QOS -mount &"							#cron task so keeps running after terminal is closed
+		fi		
+	else	
+		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then			#RMerlin install
+			echo -e  "\033[1;31;7m Remember: [ Restart QOS ] for modifications to take effect \033[0m"
+			echo ""
+		else																								#Stock install
+			echo -e  "\033[1;31;7m Remember: [ Restart Router ] for modifications to take effect \033[0m"
+			echo ""
+		fi
+		
+		if [ "${interactive}" -eq 1 ] ; then
+			read -n 1 -s -r -p "(Press any key to return)" exit
+		fi
+	fi
+}
+
 menu(){
+	interactive=1
     read_nvram
 	echo -en "\033c\e[3J"		#clear screen
 	echo -en '\033[?7l'			#disable line wrap
 	printf '\e[8;30;120t'		#set height/width of terminal
 	echo -e  "\033[1;32mFreshJR QOS v${version} released ${release} \033[0m"
-	echo "  (1) about               explains functionality"
-	echo "  (2) update              checks for updates "
+	echo "  (1) about               explain functionality"
+	echo "  (2) update              check for updates "
 	echo ""
-	echo "  (3) custom QoS rules    create/modify custom rules"
-	echo "  (4) custom QoS rates    modify bandwidth allocations"
+	echo "  (3) QoS rules           QoS rules (user defined)"
+	echo "  (4) QoS rates           QoS rates (bandwidth allocation per category)"
 	echo ""
-	echo "  (5) debug               print traffic control parameters"
-	echo "  (6) debug2              print parsed nvram parameters"
+	echo "  (5) debug               traffic control parameters"
+	echo "  (6) debug2              parsed nvram parameters"
 	echo ""
-	echo "  (u) uninstall           uninstalls script"
+	echo "  (u) uninstall           uninstall script"
 	echo ""
-	echo "  (0) exit"
+	echo "  (e) exit"
 	echo ""	
 	echo "  Current Setup:"
 	echo "           Local IP            Remote IP           Proto  Local Port     Remote Port    Mark        Dst"
@@ -1872,20 +1919,34 @@ menu(){
   printf '  Appdb    %-44s                                 %-7s %-10s\n' "$(mark_2_name $r4)" "$r4" "$([ -z $d4 ] || echo "--> $(dst_2_name $d4)")"
 	echo ""
 	echo -en '\033[?7h'			#enable line wrap
-	echo -n "Make a selection (Enter 0-9): "
+	echo -n "Make a selection: "
 	read input
 	case $input in
-			'1')  about;;
-			'2')  rules;;
-			'3')  rates;;
-			'4')  debug;;
-			'5')  debug2;;
-			'6')  echo;;
-			'u')  
+			'1')  
+				about
+				read -p "(Press any key to return)" exit
+				echo -en "\033c"		#clear screen
+				;;
+			'2')  update
+				read -p "(Press any key to return)" exit
+				echo -en "\033c"		#clear screen
+				;;
+			'3')  rules;;
+			'4')  rates;;
+			'5')  
+				debug
+				read -p "(Press any key to return)" exit
+				echo -en "\033c"		#clear screen
+				;;
+			'6')  
+				debug2
+				read -p "(Press any key to return)" exit
+				echo -en "\033c"		#clear screen				
+				;;
+			'u'|'U')  
 				  sh /jffs/scripts/FreshJR_QOS -uninstall				
 			      exit;;
-			'9')  update;;
-			'0')  exit;
+			'e'|'E')  exit;
 	esac
 	menu
 }
@@ -1928,7 +1989,9 @@ stock_install(){
 arg1="$(echo "$1" | tr -d "-")"
 case "$arg1" in	
  'start'|'check'|'mount')																	##RAN ON FIREWALL-START OR CRON TASK, (RAN ONLY POST USB MOUNT IF USING STOCK ASUS FIRMWARE)
-	cru a FreshJR_QOS "30 3 * * * /jffs/scripts/FreshJR_QOS -check"
+	cru a FreshJR_QOS "30 3 * * * /jffs/scripts/FreshJR_QOS -check"			#makes sure daily check if active
+	cru d FreshJR_QOS_run_once												#(used for stock firmware to trigger script and have it run after terminal is closed when making changes)
+
 	if [ "$(nvram get qos_enable)" == "1" ] ; then
 		for pid in $(pidof FreshJR_QOS); do
 			if [ $pid != $$ ]; then
@@ -1948,19 +2011,12 @@ case "$arg1" in
 				MV="0"
 			fi
 			
-			if [ "${CV}" -gt "384" ] ; then
-				mount -o bind /jffs/scripts/www_FreshJR_QoS_Stats.asp /www/QoS_Stats.asp
-			elif [ "${CV}" = "384" ] && [ ${MV} -ge "9" ] ; then
-				mount -o bind /jffs/scripts/www_FreshJR_QoS_Stats.asp /www/QoS_Stats.asp
+			if [ "${CV}" -ge "382" ] ; then
+				mount -o bind "${webpath}" /www/QoS_Stats.asp
+			#elif [ "${CV}" = "384" ] && [ ${MV} -ge "9" ] ; then
 			fi
 		fi
 
-		read_nvram	#needs to be set before parse_iptablerule
-		##last two arguments are variables that get set "ByRef"
-		parse_iptablerule "${e1}" "${e2}" "${e3}" "${e4}" "${e5}" "${e6}" "${e7}" ip1_down ip1_up
-		parse_iptablerule "${f1}" "${f2}" "${f3}" "${f4}" "${f5}" "${f6}" "${f7}" ip2_down ip2_up
-		parse_iptablerule "${g1}" "${g2}" "${g3}" "${g4}" "${g5}" "${g6}" "${g7}" ip3_down ip3_up
-		parse_iptablerule "${h1}" "${h2}" "${h3}" "${h4}" "${h5}" "${h6}" "${h7}" ip4_down ip4_up
 		
 		if [ "$arg1" == "start" ] ; then
 			##iptables rules will only be reapplied on firewall "start" due to receiving interface name
@@ -1968,6 +2024,13 @@ case "$arg1" in
 				if [ -z "$wan" ] ; then
 					wan="eth0"
 				fi
+				
+			read_nvram	#needs to be set before parse_iptablerule
+			parse_iptablerule "${e1}" "${e2}" "${e3}" "${e4}" "${e5}" "${e6}" "${e7}" ip1_down ip1_up		##last two arguments are variables that get set "ByRef"
+			parse_iptablerule "${f1}" "${f2}" "${f3}" "${f4}" "${f5}" "${f6}" "${f7}" ip2_down ip2_up
+			parse_iptablerule "${g1}" "${g2}" "${g3}" "${g4}" "${g5}" "${g6}" "${g7}" ip3_down ip3_up
+			parse_iptablerule "${h1}" "${h2}" "${h3}" "${h4}" "${h5}" "${h6}" "${h7}" ip4_down ip4_up
+			
 			iptable_down_rules 2>&1 | logger -t "adaptive QOS"
 			iptable_up_rules 2>&1 | logger -t "adaptive QOS"
 			
@@ -1975,9 +2038,11 @@ case "$arg1" in
 			sleep 300s
 		fi
 
+
 		if [ "$arg1" == "mount" ] ; then			
 			logger -t "adaptive QOS" -s -- "--Post USB Mount-- Delayed Start (10min)"
 			sleep 600s
+
 		fi
 		
 		current_undf_rule="$(tc filter show dev br0 | grep -v "/" | grep "000ffff" -B1)"
@@ -1990,9 +2055,18 @@ case "$arg1" in
 				logger -t "adaptive QOS" -s "Scheduled Persistence Check -> Reapplying Changes"
 			fi
 			
-			#this section is only used stock ASUS firmware.  It will will evaluate on (-mount && -check) parameters on STOCK firmware
+			#this section is only used stock ASUS firmware.  It will will evaluate on (-mount && -check) parameters only on STOCK firmware
 			if [ "$(nvram get script_usbmount)" == "/jffs/scripts/script_usbmount" ] && [ "$arg1" != "start" ] ; then		
-				wan="eth0"
+				wan="$(iptables -vL -t mangle | grep -m 1 "BWDPI_FILTER" | tr -s ' ' | cut -d ' ' -f 7)"		#try to detect upload interface automatically
+				if [ -z "$wan" ] ; then
+					wan="eth0"
+				fi
+				read_nvram	#needs to be set before parse_iptablerule
+				parse_iptablerule "${e1}" "${e2}" "${e3}" "${e4}" "${e5}" "${e6}" "${e7}" ip1_down ip1_up		##last two arguments are variables that get set "ByRef"
+				parse_iptablerule "${f1}" "${f2}" "${f3}" "${f4}" "${f5}" "${f6}" "${f7}" ip2_down ip2_up
+				parse_iptablerule "${g1}" "${g2}" "${g3}" "${g4}" "${g5}" "${g6}" "${g7}" ip3_down ip3_up
+				parse_iptablerule "${h1}" "${h2}" "${h3}" "${h4}" "${h5}" "${h6}" "${h7}" ip4_down ip4_up
+				
 				iptable_down_rules 2>&1 | logger -t "adaptive QOS"
 				iptable_up_rules 2>&1 | logger -t "adaptive QOS"
 			fi
@@ -2102,19 +2176,50 @@ case "$arg1" in
 	   chmod 0755 /jffs/scripts/firewall-start
 	fi
 	cru a FreshJR_QOS "30 3 * * * /jffs/scripts/FreshJR_QOS -check"
+	
+	if grep -iq "merlin" /proc/version ; then										  #Mounts webpage on v384.9+	
+		buildno="$(nvram get buildno)";										#Example "User12 v17.2 Beta4"
+		if [ "$(echo ${buildno} | tr -cd '.' | wc -c)" -ne 0 ]	; then					#if has decimal	
+			CV="$(echo ${buildno} | cut -d "." -f 1 | grep -o '[0-9]\+' | tail -1)"		#get first number before decimal --> 17
+			MV="$(echo ${buildno} | cut -d "." -f 2 | grep -o '[0-9]\+' | head -1)"		#get first number after decimal  --> 2
+		else																
+			CV="$(echo ${buildno} | grep -o '[0-9]\+' | head -1)"						#get first number --> 17
+			MV="0"
+		fi
+		
+		if [ "${CV}" -ge "382" ] ; then
+			mount -o bind "${webpath}" /www/QoS_Stats.asp
+		#elif [ "${CV}" = "384" ] && [ ${MV} -ge "9" ] ; then
+		fi
+	fi
+	
+	#shortcut to launching FreshJR_QOS  (/usr/bin was readonly)
+	alias freshjr="sh /jffs/scripts/FreshJR_QOS -menu"		
+	alias freshjrqos="sh /jffs/scripts/FreshJR_QOS -menu"
+	alias freshjr_qos="sh /jffs/scripts/FreshJR_QOS -menu"	
+	alias FreshJR_QOS="sh /jffs/scripts/FreshJR_QOS -menu"
+	sed -i '/fresh/d' /jffs/configs/profile.add 2>/dev/null			
+	echo 'alias freshjr="sh /jffs/scripts/FreshJR_QOS -menu"' >> /jffs/configs/profile.add
+	echo 'alias freshjrqos="sh /jffs/scripts/FreshJR_QOS -menu"' >> /jffs/configs/profile.add
+	echo 'alias freshjr_qos="sh /jffs/scripts/FreshJR_QOS -menu"' >> /jffs/configs/profile.add
+	echo 'alias FreshJR_QOS="sh /jffs/scripts/FreshJR_QOS -menu"' >> /jffs/configs/profile.add
+
+	
+	
 	echo -e  "\033[1;32mFreshJR QOS v${version} has been installed \033[0m"
-	echo -e  "\033[1;31;7m [ Turn ON OR Restart QOS ] for modifications to take effect \033[0m"
+	[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 	;;
  'uninstall')																		## UNINSTALLS SCRIPT AND DELETES FILES
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/firewall-start 2>/dev/null						#remove FreshJR_QOS from firewall start
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/script_usbmount 2>/dev/null						#remove FreshJR_QOS from script_usbmount - only used on stock ASUS firmware installs
+	sed -i '/fresh/d' /jffs/configs/profile.add 2>/dev/null			
 	cru d FreshJR_QOS
 	rm -f /jffs/scripts/FreshJR_QOS
 	
 	umount /www/QoS_Stats.asp &> /dev/null 			#suppresses error if present
 	mount -o bind /www/QoS_Stats.asp /www/QoS_Stats.asp	
 	umount /www/QoS_Stats.asp &> /dev/null 
-	rm -f /jffs/scripts/www_FreshJR_QoS_Stats.asp
+	rm -f "${webpath}"
 	
 	if [ "$(nvram get script_usbmount)" == "/jffs/scripts/script_usbmount" ] ; then												   #only used on stock ASUS firmware installs
 		nvram unset script_usbmount
@@ -2165,6 +2270,23 @@ case "$arg1" in
   'menu')
 	menu
 	;;
+  'isinstalled')
+		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then
+			exit 1		#script IS installed
+		else
+			exit 0		#script in NOT installed
+		fi
+    ;;
+  'isuptodate')
+		url="https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh"
+		remotever=$(curl -fsN --retry 3 ${url} | grep "^version=" | sed -e s/version=//)
+		if [ "$version" == "$remotever" ]; then
+			exit 1 		#script IS current 
+		else
+			exit 0		#script is NOT up to date
+		fi
+		
+    ;;
  *)
     read_nvram
 	echo -en "\033c\e[3J"		#clear screen
