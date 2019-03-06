@@ -114,7 +114,7 @@ pscp -pw %pass% -scp "%script_path%" %user%@%ip%:/jffs/scripts/FreshJR_QOS
 echo:	
 echo Starting script installer
 echo:	
-echo sh /jffs/scripts/FreshJR_QOS -install ^&^& read -n 1 -s -r -p "(Press any key to Exit)" > ssh_command
+echo dos2unix /jffs/scripts/FreshJR_QOS ^&^& sh /jffs/scripts/FreshJR_QOS -install ^&^& read -n 1 -s -r -p "(Press any key to Exit)" > ssh_command
 putty.exe -ssh %user%@%ip% -pw %pass% -m "%cd%\ssh_command" -t
 del "%cd%\ssh_command"
 

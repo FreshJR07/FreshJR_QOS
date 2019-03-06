@@ -54,6 +54,7 @@ ssh -t -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyCheckin
     mv /jffs/FreshJR_QOS.sh /jffs/scripts/FreshJR_QOS;
     cat /jffs/FreshJR_QoS_Stats.asp > /jffs/scripts/www_FreshJR_QoS_Stats.asp;
     rm /jffs/FreshJR_QoS_Stats.asp
+	dos2unix /jffs/scripts/FreshJR_QOS
     sh /jffs/scripts/FreshJR_QOS -install;'
 
   read -n 1 -s -r -p "(Press any key to Exit)"
