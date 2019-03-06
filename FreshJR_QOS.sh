@@ -1984,6 +1984,7 @@ stock_install(){
 	echo -e  "\033[1;32mFreshJR QOS v${version} has been installed \033[0m"
 	echo -e  "\033[1;32m   make sure a USB storage device is plugged in and \033[0m"
 	echo -e "\033[1;31;7m   [ reboot router ] to finalize installation\033[0m"
+	echo ""
 }
 
 #Main program here, will execute different things depending on arguments
@@ -2102,8 +2103,8 @@ case "$arg1" in
 	fi
 	;;	
  'install'|'enable')															## INSTALLS AND TURNS ON SCRIPT
+	printf '\e[8;30;120t'		#set height/width of terminal
  	chmod 0755 /jffs/scripts/FreshJR_QOS
-	
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/init-start 2>/dev/null									
 	if [ "/jffs/scripts/FreshJR_QOS_fakeTC" -ef "/bin/tc" ] || [ "/jffs/scripts/FreshJR_QOS_fakeTC" -ef "/usr/sbin/tc" ] ; then		##uninstall previous version FreshJR_QOS_fakeTC if not already uninstalled
 		
@@ -2128,7 +2129,7 @@ case "$arg1" in
 			echo "FreshJR_QOS_fast(fakeTC) Uninstall Process has been Initiated "
 			echo  -e "\033[1;31;7m Please [ reboot router ] to finish the uninstall process \033[0m"
 			echo  -e "\033[1;31;7m Rerun this install procedure after system reboot \033[0m"
-			exit 1
+			exit 0
 		fi	
 	fi	
 
@@ -2136,21 +2137,23 @@ case "$arg1" in
 		echo -e "\033[1;31m Non-RMerlin Firmware Detected \033[0m"
 		echo -e -n "\033[1;31m Is this installation for (Stock / Default / Unmodified) Asus firmware?  [1=Yes 2=No] : \033[0m"   # Display prompt in red
 		read yn
+		echo ""
 		case $yn in
 			'1') 
 				sed -i '/FreshJR_QOS/d' /jffs/scripts/firewall-start 2>/dev/null
 				stock_install; 
-				exit 1
+				exit 0
 				;;
 			'2') 
 				sed -i '/FreshJR_QOS/d' /jffs/scripts/script_usbmount 2>/dev/null 
 				echo -e "\033[1;32m Installing RMerlin version of the script \033[0m"   # Display prompt in red
+				echo ""
 				break
 				;;
 			*) 
 				echo "Invalid Option"
 				echo "ABORTING INSTALLATION "
-				exit 1
+				exit 0
 				;;
 		esac
 	fi
