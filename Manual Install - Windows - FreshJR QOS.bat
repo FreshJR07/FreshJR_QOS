@@ -88,7 +88,7 @@ if exist "%cd%\scripts\" (
 )
 
 if exist "%cd%\ssh_command" (
-	echo CANNOT CONTINUE:  Remove the file "ssh_command" in current directory
+	echo Remove the file "ssh_command" in current directory
 	echo  --CANNOT CONTINUE^!^!--
 	echo:
 	pause

@@ -26,7 +26,6 @@ fi
 echo ""
 
 if [ "${file}" -eq 0 ] ; then
-  echo "$(ls)"
   echo "Not all files detected"
   echo "--CANNOT CONTINUE!!--"
   echo ""  
@@ -44,7 +43,7 @@ echo    "  Router password:  "
 echo    "    (entry will appear blank - required twice)"
 echo ""
 
-echo "Transfering files onto router "
+echo "Transferring files onto router "
 scp "./FreshJR_QOS.sh" "./FreshJR_QoS_Stats.asp" "${user}"@"${ip}":/jffs/
 echo ""
 
