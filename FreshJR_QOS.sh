@@ -1,7 +1,7 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.3
-release=03/05/2019
+version=8.4
+release=03/06/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
 # Script Changes Unidentified traffic destination away from "Defaults" into "Others"
@@ -47,14 +47,14 @@ release=03/05/2019
 #
 ### IF YOU MANUALLY ADD RULES TO AREA BELOW THEN KEEP IN MIND THAT YOUR CHANGES WILL TAKE EFFECT BUT WILL NOT BE REFLECTED UNDER THE TRACKED CONNECTIONS SECTION OF THE WEBUI. 
 ### FOR HARDCODED CHANGES TO BE REFLECTED IN TRACKED CONNECTIONS SECTION OF THE WEBUI THEN YOU ALSO HAVE TO MODIFY THE CORRESPONDING JAVASCRIPT CODE IN /jffs/scripts/FreshJR_QoS_Stats.asp
-### INSTEAD OF HARDCODED CHANGES (legacy method) YOU CAN USE THE SCRIPTS -RULES COMMAND OR ENTER THE WEBUI PAGE FOR CREATING RULES AND TOSE CHANGES WILL BE REFLECTED IN THE TRACKED CONNECTIONS TABLE.
+### INSTEAD OF HARDCODED CHANGES (legacy method) YOU CAN USE THE SCRIPTS -RULES COMMAND OR ENTER THE WEBUI PAGE FOR CREATING RULES AND THOSE CHANGES WILL BE REFLECTED IN THE TRACKED CONNECTIONS TABLE.
 #
 ####################  MODIFY BELOW WITH CAUTION   #####################
 ####################  MODIFY BELOW WITH CAUTION   #####################
 
 	iptable_down_rules() {
 		echo "Applying - Iptable Down Rules"
-		##DOWNLOAD (INCOMMING TRAFFIC) CUSTOM RULES START HERE  -- legacy
+		##DOWNLOAD (INCOMMING TRAFFIC) CUSTOM RULES START HERE  -- legacy method
 			
 			iptables -D POSTROUTING -t mangle -o br0 -p udp -m multiport --sports 500,4500 -j MARK --set-mark ${VOIP_mark_down} &> /dev/null				#Wifi Calling - (All incoming traffic from WAN source ports 500 & 4500 --> VOIP ) 								
 			iptables -A POSTROUTING -t mangle -o br0 -p udp -m multiport --sports 500,4500 -j MARK --set-mark ${VOIP_mark_down}
@@ -71,7 +71,7 @@ release=03/05/2019
 			iptables -D POSTROUTING -t mangle -o br0 -m mark --mark 0x80080000/0xc03f0000 -p tcp -m multiport --sports 80,443 -j MARK --set-mark ${Default_mark_down} &> /dev/null		#Gaming - (Incoming "Gaming" traffic from WAN source ports 80 & 443 -->  Defaults//GameDownloads)
 			iptables -A POSTROUTING -t mangle -o br0 -m mark --mark 0x80080000/0xc03f0000 -p tcp -m multiport --sports 80,443 -j MARK --set-mark ${Default_mark_down}
 			
-		##DOWNLOAD (INCOMMING TRAFFIC) CUSTOM RULES END HERE  -- legacy
+		##DOWNLOAD (INCOMMING TRAFFIC) CUSTOM RULES END HERE  -- legacy method
 		
 		if [ "$( echo $gameCIDR | tr -cd '.' | wc -c )" -eq "3" ] ; then
 			iptables -D POSTROUTING -t mangle -o br0 -d $gameCIDR -m mark --mark 0x80000000/0x8000ffff -p tcp -m multiport ! --sports 80,443  -j MARK --set-mark ${Gaming_mark_down} &> /dev/null    	#Gaming - (Incoming "Unidentified" TCP traffic, for devices specified, not from WAN source ports 80 & 443 -->  Gaming)
@@ -224,7 +224,7 @@ release=03/05/2019
 		! [ -z "$tc3_down" ] && ${tc} filter add dev br0 protocol all ${tc3_down}													#Script Interactively Defined Rule 3
 		! [ -z "$tc2_down" ] && ${tc} filter add dev br0 protocol all ${tc2_down}													#Script Interactively Defined Rule 2
 		! [ -z "$tc1_down" ] && ${tc} filter add dev br0 protocol all ${tc1_down}													#Script Interactively Defined Rule 1
-		${tc} filter add dev br0 protocol all prio 22 u32 match mark 0x8012003F 0xc03fffff flowid ${Web}							#recreate HTTPS rule with different destination
+		${tc} filter add dev br0 protocol all prio 20 u32 match mark 0x8012003F 0xc03fffff flowid ${Web}							#         HTTP  rule with different destination
 		${tc} filter add dev br0 protocol all prio 22 u32 match mark 0x80130000 0xc03f0000 flowid ${Web}							#recreate HTTPS rule with different destination
 		${tc} filter add dev br0 protocol all prio 23 u32 match mark 0x80140000 0xc03f0000 flowid ${Web}							#recreate HTTPS rule with different destination
 		##DOWNLOAD APP_DB TRAFFIC REDIRECTION RULES START HERE  -- legacy method
@@ -233,7 +233,7 @@ release=03/05/2019
 			${tc} filter add dev br0 protocol all prio 15 u32 match mark 0x800D0007 0xc03fffff flowid ${Downloads}						#Speedtest.net
 			${tc} filter add dev br0 protocol all prio 15 u32 match mark 0x800D0086 0xc03fffff flowid ${Downloads}						#Google Play 
 			${tc} filter add dev br0 protocol all prio 15 u32 match mark 0x800D00A0 0xc03fffff flowid ${Downloads}						#Apple AppStore
-			${tc} filter add dev eth0 protocol all prio 50 u32 match mark 0x801A0000 0xc03f0000 flowid ${Downloads}						#Advertisement			
+			${tc} filter add dev br0 protocol all prio 50 u32 match mark 0x801A0000 0xc03f0000 flowid ${Downloads}						#Advertisement			
 	
 		##DOWNLOAD APP_DB TRAFFIC REDIRECTION RULES END HERE  -- legacy method
 
@@ -250,7 +250,7 @@ release=03/05/2019
 		! [ -z "$tc3_up" ] && ${tc} filter add dev eth0 protocol all ${tc3_up}														#Script Interactively Defined Rule 3
 		! [ -z "$tc2_up" ] && ${tc} filter add dev eth0 protocol all ${tc2_up}														#Script Interactively Defined Rule 2
 		! [ -z "$tc1_up" ] && ${tc} filter add dev eth0 protocol all ${tc1_up}														#Script Interactively Defined Rule 1
-		${tc} filter add dev br0 protocol all prio 20 u32 match mark 0x4012003F 0xc03fffff flowid ${Web}							#recreate HTTPS rule with different destination
+		${tc} filter add dev eth0 protocol all prio 20 u32 match mark 0x4012003F 0xc03fffff flowid ${Web}							#         HTTP  rule with different destination
 		${tc} filter add dev eth0 protocol all prio 22 u32 match mark 0x40130000 0xc03f0000 flowid ${Web}							#recreate HTTPS rule with different destination
 		${tc} filter add dev eth0 protocol all prio 23 u32 match mark 0x40140000 0xc03f0000 flowid ${Web}							#recreate HTTPS rule with different destination
 		##UPLOAD APP_DB TRAFFIC REDIRECTION RULES START HERE  -- legacy method
@@ -550,7 +550,7 @@ EOF
 ## Main Menu -appdb function
 appdb(){
 
-	if [ "$( grep -i "${1}"  /tmp/bwdpi/bwdpi.app.db | wc -l )" -lt "5" ] ; then
+	if [ "$( grep -i "${1}"  /tmp/bwdpi/bwdpi.app.db | wc -l )" -lt "25" ] ; then
 		grep -i "${1}"  /tmp/bwdpi/bwdpi.app.db | while read -r line ; do
 			echo $line | cut -f 4 -d ","
 
