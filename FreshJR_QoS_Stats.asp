@@ -1,6 +1,6 @@
 ﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- 
-##FreshJR_QOS_v8.2 released 03/05/2019
+##FreshJR_QOS_v8.3 released 03/05/2019
 Modification on-top of RMerlins QoS_Stats page taken from 384.9
  -->
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -154,6 +154,7 @@ var rule1;				// IPv4 rules
 var rule2;
 var rule3;
 var rule4;
+var gamerule;
 var gameCIDR;			// CIDR/IP of game devices
 var ruleFLAG;			// Unused - reserved for toggling ON/OFF hardcoded rules in future release
 //Syntax Hints
@@ -866,7 +867,7 @@ function create_rule(Proto, Lport, Rport, Lip, Rip, Mark, Dst){
 function eval_rule(rule, CProto, CLport, CRport, CLip, CRip, CCat, CId){
 
 	//eval false if rule has no filters or destination specified
-	if (!rule[0] || (rule[18]==undefined) ) 	
+	if (!rule || !rule[0] || (rule[18]==undefined) ) 	
 	{
 		// console.log("rule is not configured");
 		return 0;

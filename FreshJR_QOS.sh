@@ -1,6 +1,6 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.2
+version=8.3
 release=03/05/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
@@ -299,8 +299,8 @@ release=03/05/2019
 ####################  DO NOT MODIFY BELOW  #####################	
 ####################  DO NOT MODIFY BELOW  #####################	
 
-#path of FreshJR_QoS_Stats.asp
-webpath='/jffs/scripts/www_FreshJR_QoS_Stats.asp'
+webpath='/jffs/scripts/www_FreshJR_QoS_Stats.asp'		#path of FreshJR_QoS_Stats.asp
+interactive=0											#used to trigger (Press Any Key to Continue) when set to 1
 
 #marks for iptable rules	 
 	Net_mark_down="0x80090001"
@@ -1836,7 +1836,7 @@ update(){
 		echo -n " Would you like to update now? [1=Yes 2=No] : "
 		read yn
 		echo ""
-		if ! [ "${yn}" = "1" ] ; then
+		if ! [ "${yn}" -eq 1 ] ; then
 			echo "No Changes have been made"
 			echo ""
 			return 0
@@ -1846,7 +1846,7 @@ update(){
 		echo -n " Would you like to overwrite your existing installation anyway? [1=Yes 2=No] : "
 		read yn
 		echo ""
-		if ! [ "${yn}" = "1"  ] ; then
+		if ! [ "${yn}" -eq 1  ] ; then
 			echo "No Changes have been made"
 			echo ""
 			return 0
@@ -1865,7 +1865,7 @@ prompt_restart(){
 	echo -en "  Would you like to \033[1;32m[Restart QoS]\033[0m for modifications to take effect? [1=Yes 2=No] : "
 	read yn
 	echo ""
-	if [ "${yn}" = "1" ] ; then
+	if [ "${yn}" -eq 1 ] ; then
 		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then			#RMerlin install
 			service "restart_qos;restart_firewall"
 		else																								#Stock Install
@@ -1882,7 +1882,7 @@ prompt_restart(){
 		fi
 		
 		if [ "${interactive}" -eq 1 ] ; then
-			read -n 1 -s -r -p "(Press any key to return)" exit
+			read -n 1 -s -r -p "(Press any key to return)"
 		fi
 	fi
 }
@@ -1925,23 +1925,23 @@ menu(){
 	case $input in
 			'1')  
 				about
-				read -p "(Press any key to return)" exit
+				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
 			'2')  update
-				read -p "(Press any key to return)" exit
+				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
 			'3')  rules;;
 			'4')  rates;;
 			'5')  
 				debug
-				read -p "(Press any key to return)" exit
+				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
 			'6')  
 				debug2
-				read -p "(Press any key to return)" exit
+				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen				
 				;;
 			'u'|'U')  
@@ -2013,7 +2013,9 @@ case "$arg1" in
 			fi
 			
 			if [ "${CV}" -ge "382" ] ; then
-				mount -o bind "${webpath}" /www/QoS_Stats.asp
+				if ! [ "${webpath}" -ef "/www/QoS_Stats.asp" ] ; then
+					mount -o bind "${webpath}" /www/QoS_Stats.asp
+				fi
 			#elif [ "${CV}" = "384" ] && [ ${MV} -ge "9" ] ; then
 			fi
 		fi
@@ -2189,7 +2191,9 @@ case "$arg1" in
 		fi
 		
 		if [ "${CV}" -ge "382" ] ; then
-			mount -o bind "${webpath}" /www/QoS_Stats.asp
+			if ! [ "${webpath}" -ef "/www/QoS_Stats.asp" ] ; then
+				mount -o bind "${webpath}" /www/QoS_Stats.asp
+			fi
 		#elif [ "${CV}" = "384" ] && [ ${MV} -ge "9" ] ; then
 		fi
 	fi
@@ -2213,7 +2217,8 @@ case "$arg1" in
  'uninstall')																		## UNINSTALLS SCRIPT AND DELETES FILES
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/firewall-start 2>/dev/null						#remove FreshJR_QOS from firewall start
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/script_usbmount 2>/dev/null						#remove FreshJR_QOS from script_usbmount - only used on stock ASUS firmware installs
-	sed -i '/fresh/d' /jffs/configs/profile.add 2>/dev/null			
+	sed -i '/freshjr/d' /jffs/configs/profile.add 2>/dev/null								#remove aliases used to launch interactive mode
+	sed -i '/FreshJR/d' /jffs/configs/profile.add 2>/dev/null
 	cru d FreshJR_QOS
 	rm -f /jffs/scripts/FreshJR_QOS
 	
