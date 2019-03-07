@@ -1,6 +1,6 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.4
+version=8.5
 release=03/06/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
@@ -625,7 +625,7 @@ debug(){
 	logger -t "adaptive QOS" -s "Defaults = ${Defaults}"
 	logger -t "adaptive QOS" -s "***********"
 	logger -t "adaptive QOS" -s "Downrates -- $DownRate0, $DownRate1, $DownRate2, $DownRate3, $DownRate4, $DownRate5, $DownRate6, $DownRate7"
-	logger -t "adaptive QOS" -s "Downceils -- $DownCeil0, $DownCeil1, $DownCeil2, $DownCeil3, $DownCeil4, $DownCeil5, $DownCeil6, $DownCiel7"
+	logger -t "adaptive QOS" -s "Downceils -- $DownCeil0, $DownCeil1, $DownCeil2, $DownCeil3, $DownCeil4, $DownCeil5, $DownCeil6, $DownCeil7"
 	logger -t "adaptive QOS" -s "Downbursts -- $DownBurst0, $DownBurst1, $DownBurst2, $DownBurst3, $DownBurst4, $DownBurst5, $DownBurst6, $DownBurst7"
 	logger -t "adaptive QOS" -s "DownCbursts -- $DownCburst0, $DownCburst1, $DownCburst2, $DownCburst3, $DownCburst4, $DownCburst5, $DownCburst6, $DownCburst7"
 	logger -t "adaptive QOS" -s "***********"
@@ -2021,7 +2021,8 @@ case "$arg1" in
 			fi
 		fi
 
-		
+		read_nvram	#needs to be set before parse_iptablerule or custom rates 
+
 		if [ "$arg1" == "start" ] ; then
 			##iptables rules will only be reapplied on firewall "start" due to receiving interface name
 			wan="${2}"
@@ -2029,7 +2030,6 @@ case "$arg1" in
 					wan="eth0"
 				fi
 				
-			read_nvram	#needs to be set before parse_iptablerule
 			parse_iptablerule "${e1}" "${e2}" "${e3}" "${e4}" "${e5}" "${e6}" "${e7}" ip1_down ip1_up		##last two arguments are variables that get set "ByRef"
 			parse_iptablerule "${f1}" "${f2}" "${f3}" "${f4}" "${f5}" "${f6}" "${f7}" ip2_down ip2_up
 			parse_iptablerule "${g1}" "${g2}" "${g3}" "${g4}" "${g5}" "${g6}" "${g7}" ip3_down ip3_up
@@ -2065,7 +2065,6 @@ case "$arg1" in
 				if [ -z "$wan" ] ; then
 					wan="eth0"
 				fi
-				read_nvram	#needs to be set before parse_iptablerule
 				parse_iptablerule "${e1}" "${e2}" "${e3}" "${e4}" "${e5}" "${e6}" "${e7}" ip1_down ip1_up		##last two arguments are variables that get set "ByRef"
 				parse_iptablerule "${f1}" "${f2}" "${f3}" "${f4}" "${f5}" "${f6}" "${f7}" ip2_down ip2_up
 				parse_iptablerule "${g1}" "${g2}" "${g3}" "${g4}" "${g5}" "${g6}" "${g7}" ip3_down ip3_up
