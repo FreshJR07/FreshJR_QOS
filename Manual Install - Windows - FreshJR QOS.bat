@@ -1,7 +1,7 @@
 @echo off
 
 REM --------DETECT FILES------------
-
+ 
 set putty=0
 set pscp=0
 set script=0

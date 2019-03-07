@@ -5,7 +5,7 @@ echo "-------------------------------------------------"
 echo "---- Ctrl + C to quit installer at any time  ----"
 echo "-------------------------------------------------"
 echo ""
-
+ 
 echo "Detecting if files are present in current folder"
 echo ""
 file=1
