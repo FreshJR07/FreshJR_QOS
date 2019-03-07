@@ -1,6 +1,6 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.5
+version=8.6
 release=03/06/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
@@ -2003,7 +2003,7 @@ case "$arg1" in
 		done
 
 		##check if should mount QoS_stats page
-		if grep -iq "merlin" /proc/version ; then	
+		if [ "$(uname -o)" != "ASUSWRT-Merlin" ] ; then			
 			buildno="$(nvram get buildno)";										#Example "User12 v17.2 Beta4"
 			if [ "$(echo ${buildno} | tr -cd '.' | wc -c)" -ne 0 ]	; then					#if has decimal	
 				CV="$(echo ${buildno} | cut -d "." -f 1 | grep -o '[0-9]\+' | tail -1)"		#get first number before decimal --> 17
@@ -2132,7 +2132,7 @@ case "$arg1" in
 		fi	
 	fi	
 
-	if ! grep -iq "merlin" /proc/version ; then																					##GIVE USER CHOICE TO RUN STOCK INSTALL IF Non-RMerlin FIRMWARE detected
+	if [ "$(uname -o)" != "ASUSWRT-Merlin" ] ; then																				##GIVE USER CHOICE TO RUN STOCK INSTALL IF Non-RMerlin FIRMWARE detected
 		echo -e "\033[1;31m Non-RMerlin Firmware Detected \033[0m"
 		echo -e -n "\033[1;31m Is this installation for (Stock / Default / Unmodified) Asus firmware?  [1=Yes 2=No] : \033[0m"   # Display prompt in red
 		read yn
@@ -2182,7 +2182,7 @@ case "$arg1" in
 	fi
 	cru a FreshJR_QOS "30 3 * * * /jffs/scripts/FreshJR_QOS -check"
 	
-	if grep -iq "merlin" /proc/version ; then										  #Mounts webpage on v384.9+	
+	if [ "$(uname -o)" != "ASUSWRT-Merlin" ] ; then				  #Mounts webpage on v384.9+	
 		buildno="$(nvram get buildno)";										#Example "User12 v17.2 Beta4"
 		if [ "$(echo ${buildno} | tr -cd '.' | wc -c)" -ne 0 ]	; then					#if has decimal	
 			CV="$(echo ${buildno} | cut -d "." -f 1 | grep -o '[0-9]\+' | tail -1)"		#get first number before decimal --> 17
@@ -2280,18 +2280,18 @@ case "$arg1" in
 	;;
   'isinstalled')
 		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then
-			exit 1		#script IS installed
+			exit 0		#script IS installed
 		else
-			exit 0		#script in NOT installed
+			exit 1		#script in NOT installed
 		fi
     ;;
   'isuptodate')
 		url="https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh"
 		remotever=$(curl -fsN --retry 3 ${url} | grep "^version=" | sed -e s/version=//)
 		if [ "$version" == "$remotever" ]; then
-			exit 1 		#script IS current 
+			exit 0 		#script IS current 
 		else
-			exit 0		#script is NOT up to date
+			exit 1		#script is NOT up to date
 		fi
 		
     ;;
