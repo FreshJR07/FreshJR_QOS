@@ -1,6 +1,6 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.6
+version=8.7
 release=03/06/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
@@ -2003,7 +2003,7 @@ case "$arg1" in
 		done
 
 		##check if should mount QoS_stats page
-		if [ "$(uname -o)" != "ASUSWRT-Merlin" ] ; then			
+		if [ "$(uname -o)" == "ASUSWRT-Merlin" ] ; then			
 			buildno="$(nvram get buildno)";										#Example "User12 v17.2 Beta4"
 			if [ "$(echo ${buildno} | tr -cd '.' | wc -c)" -ne 0 ]	; then					#if has decimal	
 				CV="$(echo ${buildno} | cut -d "." -f 1 | grep -o '[0-9]\+' | tail -1)"		#get first number before decimal --> 17
@@ -2182,7 +2182,7 @@ case "$arg1" in
 	fi
 	cru a FreshJR_QOS "30 3 * * * /jffs/scripts/FreshJR_QOS -check"
 	
-	if [ "$(uname -o)" != "ASUSWRT-Merlin" ] ; then				  #Mounts webpage on v384.9+	
+	if [ "$(uname -o)" == "ASUSWRT-Merlin" ] ; then				  #Mounts webpage on RMerlin v382+	
 		buildno="$(nvram get buildno)";										#Example "User12 v17.2 Beta4"
 		if [ "$(echo ${buildno} | tr -cd '.' | wc -c)" -ne 0 ]	; then					#if has decimal	
 			CV="$(echo ${buildno} | cut -d "." -f 1 | grep -o '[0-9]\+' | tail -1)"		#get first number before decimal --> 17
