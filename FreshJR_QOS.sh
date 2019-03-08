@@ -1,7 +1,7 @@
 #!/bin/sh
 ##FreshJR_QOS  
-version=8.7
-release=03/06/2019
+version=8.8
+release=03/07/2019
 #Copyright (C) 2017-2019 FreshJR - All Rights Reserved 
 #Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings
 # Script Changes Unidentified traffic destination away from "Defaults" into "Others"
@@ -190,7 +190,7 @@ release=03/06/2019
 			fi
 		fi
 		
-		if ! [ -z "$ip1_up" ] ; then													#Script Interactively Defined Rule 3
+		if ! [ -z "$ip3_up" ] ; then													#Script Interactively Defined Rule 3
 			if [ "$(echo ${ip3_up} | grep -c "both")" -ge "1" ] ; then
 				iptables -D POSTROUTING -t mangle -o $wan ${ip3_up//both/tcp} &> /dev/null    																				
 				iptables -A POSTROUTING -t mangle -o $wan ${ip3_up//both/tcp}
@@ -300,7 +300,6 @@ release=03/06/2019
 ####################  DO NOT MODIFY BELOW  #####################	
 
 webpath='/jffs/scripts/www_FreshJR_QoS_Stats.asp'		#path of FreshJR_QoS_Stats.asp
-interactive=0											#used to trigger (Press Any Key to Continue) when set to 1
 
 #marks for iptable rules	 
 	Net_mark_down="0x80090001"
@@ -844,8 +843,7 @@ rates(){
 	echo -en '\033[?7l'			#disable line wrap
 	printf '\e[8;30;120t'		#set height/width of terminal
 	echo -e  "\033[1;32mFreshJR QOS v${version}\033[0m"
-	echo "Custom QoS Rates:"
-	echo "                -------Download-------          --------Upload--------"
+	echo "QoS Rates:      -------Download-------          --------Upload--------"
 	echo "                Minimum       Maximum           Minimum       Maximum"
 	echo "                Reserved      Reserved          Allowed       Allowed"
 	echo "                Bandwidth     Bandwidth         Bandwidth     Bandwidth"
@@ -869,12 +867,12 @@ rates(){
 	echo "3) Maximum Allowed Bandwidth  -- Download"
 	echo "4) Maximum Allowed Bandwidth  -- Upload"
 	echo ""
-	echo "9)  Reset Values to Defaults"
-	echo "10) Save & Exit"
-	echo "11) Exit"
+	echo "r) Reset Values to Defaults"
+	echo "s) Save & Exit"
+	echo "e) Exit"
 	echo -en '\033[?7h'			#enable line wrap
 	echo ""
-	echo -n "What would you like to do (Enter 1-11): "
+	echo -n "What would you like to do (Enter 1-10): "
 	read input
 	echo -en "\033[1A\r\033[0K"  
 	echo -en "\033[1A\r\033[0K"  
@@ -968,7 +966,7 @@ rates(){
 			[ "${in7//[^0-9]}" -ge "5" ] && [ "${in7//[^0-9]}" -le "100" ] && ucp7="${in7//[^0-9]}" 
 			rates			
 			;;
-		9) 
+		'r'|'R') 
 			drp0="5"
 			drp1="20"
 			drp2="15"
@@ -1006,12 +1004,15 @@ rates(){
 			ucp7="100"
 			rates
 			;;
-		10) 
-		    save_nvram
+		's'|'S') 
+			save_nvram
+			echo " Saving Changes"			
 			[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 			return 1 
 			;;
-		11) 
+		'e'|'E') 
+			echo -e "\033[1;31;7m  No Changes have been saved \033[0m"
+			echo ""
 			return 0 ;;
 		*) 
 			rates ;;
@@ -1037,11 +1038,11 @@ rules(){
   printf '9)  Appdb    %-44s                                 %-7s %-10s\n' "$(mark_2_name $r4)" "$r4" "$([ -z $d4 ] || echo "--> $(dst_2_name $d4)")"
 
 	echo ""
-	echo "10) Save & Exit"
-	echo "11) Exit"
+	echo "s) Save & Exit"
+	echo "e) Exit"
 	echo -en '\033[?7h'			#enable line wrap
 	echo ""
-	echo -n "Select Rule to Modify (Enter 1-11): "
+	echo -n "Select Rule to Modify (Enter 1-9): "
 	read input
 	case $input in
 		'1') iprule e1 e2 e3 e4 e5 e6 e7 "Rule 1";;
@@ -1053,12 +1054,17 @@ rules(){
 		'7') apprule r2 d2 "Appdb 2" ;;
 		'8') apprule r3 d3 "Appdb 3" ;;
 		'9') apprule r4 d4 "Appdb 4" ;;
-		'10') 
+		's'|'S') 
+		    echo ""
+			echo "Saving Changes"
 		    save_nvram
 			[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 			return 1 
 			;;
-		'11') 
+		'e'|'E') 
+		    echo ""
+			echo -e "\033[1;31;7m  No Changes have been saved \033[0m"
+			echo ""
 			return 0 ;;
 		*) 
 			rules ;;
@@ -1081,12 +1087,12 @@ iprule()
 	echo -n "7)  QoS Mark          " && eval "echo \${$6}"
 	echo -n "8)  Destination       " && eval "dst_2_name \${$7}"
 	echo ""
-	echo "9)  Reset / Disable"
-	echo "0)  Go Back"
+	echo "r)  Reset / Disable"
+	echo "e)  Go Back"
 	echo ""
 	in_progress=1
 	while [ ${in_progress} -eq 1 ] ; do
-		echo -n "Select Parameter to Modify (Enter 0-9): "
+		echo -n "Select Parameter to Modify (Enter 1-8): "
 		read input
 		echo -en "\033[1A\r\033[0K" 		#clear user input prompt
 			case $input in
@@ -1095,7 +1101,7 @@ iprule()
 					echo  "  WebUI Rule Name"
 					echo  ""
 					echo -ne  "\033[0m"
-					echo -n "  Name(${8//[^0-9]/})="
+					echo -n "  Name(Rule${8//[^0-9]/})="
 					#read user input
 					read input
 					if [ -z $input ] ; then
@@ -1375,7 +1381,7 @@ iprule()
 					echo -en "\033[10;0f\033[0K"  #move to line 10 pos 0 \ erase to end
 					echo -n "8)  Destination       " && eval "dst_2_name \${$7}"   #if all params empty leave blank else populate
 					;;
-				9) #reset
+				'r'|'R') #reset
 					eval "$1=''"
 					eval "$2=''"
 					eval "$3=''"
@@ -1386,7 +1392,8 @@ iprule()
 					echo "$( cat "${webpath}" | sed -E 's/var rulename'"${8//[^0-9]/}"'="(.*?)";/var rulename'"${8//[^0-9]/}"'="Rule'"${8//[^0-9]/}"'";/')"  > "${webpath}"
 					in_progress=0
 					;;
-				0) in_progress=0 
+				'e'|'E') 
+				    in_progress=0 
 					;;
 			esac
 		echo -en "\033[15;0f"	#set cursor to user prompt original position
@@ -1427,11 +1434,12 @@ apprule()
 	echo -n "1)  QoS Mark          " && eval "echo \${$1}"
 	echo -n "2)  Destination       " && eval "dst_2_name \${$2}"
 	echo ""
-	echo "9)  Reset / Disable"
-	echo "0)  Go Back"
+	echo "r)  Reset / Disable"
+	echo "e)  Go Back"
 	echo ""
-	while true ; do
-		echo -n "Select Parameter to Modify (Enter 0-9): "
+	in_progress=1
+	while [ ${in_progress} -eq 1 ] ; do
+		echo -n "Select Parameter to Modify (Enter 1-2): "
 		read input
 		echo -en "\033[1A\r\033[0K" 		#clear user input prompt
 		case $input in
@@ -1550,16 +1558,19 @@ apprule()
 				echo -en "\033[4;0f\033[0K"  #move to line 4 pos 0 \ erase to end
 				echo -n "2)  Destination       " && eval "dst_2_name \${$2}"
 				;;
-			9) #reset
+			'r'|'R') #reset
 				eval "$1=''"
 				eval "$2=''"
 				#apprule $1 $2 "${3}"
-				rules
+				in_progress=0
 				;;
-			0) rules ;;
+			'e'|'E') 
+				in_progress=0
+				;;
 		esac
 		echo -en "\033[9;0f"	#set cursor to user prompt original position
-	done		
+	done
+	rules #go back to rules page after modifying individual rule	
 }
 
 
@@ -1806,16 +1817,16 @@ about(){
 	echo '  Use of this gaming rule REQUIRES devices to have a continous static ip assignment && this range needs to be passed into the script'
 	echo ""
 	echo "How to Use Advanced Functionality"
-	echo '  Custom rules can be created within the WebUI OR by running the -rules command:'
-	echo '      (custom rules):  /jffs/scripts/FreshJR_QOS -rules'
-	echo ""
-	echo '  Default bandwidth allocation per category can be adjusted via WebUI OR -rates command:'
-	echo '      (custom rates):  /jffs/scripts/FreshJR_QOS -rates'
+	echo '  Interactive terminal mode can be accessed by running the -menu command:'
+	echo '      (interactive mode) :  /jffs/scripts/FreshJR_QOS -menu'
+	echo '  Custom rules can be created via the WebUI OR directly accessed by running the -rules command:'
+	echo '      (custom rules)     :  /jffs/scripts/FreshJR_QOS -rules'
+	echo '  Bandwidth allocation per category can be adjusted via the WebUI OR directly accessed by running the -rates command:'
+	echo '      (custom rates)     :  /jffs/scripts/FreshJR_QOS -rates'
 	echo ""
 	echo 'Development'
 	echo '  Tested with ASUS AC-68U, FW384.9, using Adaptive QOS with Manual Bandwidth Settings'
 	echo '  Copyright (C) 2017-2019 FreshJR - All Rights Reserved '
-	echo ""
 	echo -en '\033[?7h'			#enable line wrap
 }
 
@@ -1836,8 +1847,8 @@ update(){
 		echo -n " Would you like to update now? [1=Yes 2=No] : "
 		read yn
 		echo ""
-		if ! [ "${yn}" -eq 1 ] ; then
-			echo "No Changes have been made"
+		if ! [ "${yn}" == "1" ] ; then
+			echo -e "\033[1;31;7m  No Changes have been made \033[0m"
 			echo ""
 			return 0
 		fi
@@ -1846,8 +1857,8 @@ update(){
 		echo -n " Would you like to overwrite your existing installation anyway? [1=Yes 2=No] : "
 		read yn
 		echo ""
-		if ! [ "${yn}" -eq 1  ] ; then
-			echo "No Changes have been made"
+		if ! [ "${yn}" == "1"  ] ; then
+			echo -e "\033[1;31;7m  No Changes have been made \033[0m"
 			echo ""
 			return 0
 		fi
@@ -1862,33 +1873,29 @@ update(){
 
 prompt_restart(){
 	echo ""
-	echo -en "  Would you like to \033[1;32m[Restart QoS]\033[0m for modifications to take effect? [1=Yes 2=No] : "
+	echo -en " Would you like to \033[1;32m[Restart QoS]\033[0m for modifications to take effect? [1=Yes 2=No] : "
 	read yn
-	echo ""
-	if [ "${yn}" -eq 1 ] ; then
+	if [ "${yn}" == "1" ] ; then
 		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then			#RMerlin install
 			service "restart_qos;restart_firewall"
 		else																								#Stock Install
 			service "restart_qos;restart_firewall"
 			cru a FreshJR_QOS_run_once "* * * * * /jffs/scripts/FreshJR_QOS -mount &"							#cron task so keeps running after terminal is closed
-		fi		
+		fi	
+		echo ""		
 	else	
+		echo ""
 		if grep -q -x '/jffs/scripts/FreshJR_QOS -start $1 & ' /jffs/scripts/firewall-start ; then			#RMerlin install
-			echo -e  "\033[1;31;7m Remember: [ Restart QOS ] for modifications to take effect \033[0m"
+			echo -e  "\033[1;31;7m  Remember: [ Restart QOS ] for modifications to take effect \033[0m"
 			echo ""
 		else																								#Stock install
-			echo -e  "\033[1;31;7m Remember: [ Restart Router ] for modifications to take effect \033[0m"
+			echo -e  "\033[1;31;7m  Remember: [ Restart Router ] for modifications to take effect \033[0m"
 			echo ""
-		fi
-		
-		if [ "${interactive}" -eq 1 ] ; then
-			read -n 1 -s -r -p "(Press any key to return)"
 		fi
 	fi
 }
 
 menu(){
-	interactive=1
     read_nvram
 	echo -en "\033c\e[3J"		#clear screen
 	echo -en '\033[?7l'			#disable line wrap
@@ -1928,26 +1935,56 @@ menu(){
 				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
-			'2')  update
+			'2')  
+			    update
 				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
-			'3')  rules;;
-			'4')  rates;;
+			'3')
+				rules
+				read -n 1 -s -r -p "(Press any key to return)"
+				echo -en "\033c"		#clear screen
+				;;
+			'4')
+				rates
+				read -n 1 -s -r -p "(Press any key to return)"
+				echo -en "\033c"		#clear screen
+				;;
 			'5')  
 				debug
+				echo ""
 				read -n 1 -s -r -p "(Press any key to return)"
 				echo -en "\033c"		#clear screen
 				;;
 			'6')  
 				debug2
+				echo ""
 				read -n 1 -s -r -p "(Press any key to return)"
-				echo -en "\033c"		#clear screen				
+				echo -en "\033c"		#clear screen
 				;;
-			'u'|'U')  
-				  sh /jffs/scripts/FreshJR_QOS -uninstall				
-			      exit;;
-			'e'|'E')  exit;
+			'u'|'U') 
+				clear
+				echo -e  "\033[1;32mFreshJR QOS v${version} released ${release} \033[0m"
+				echo ""
+				echo -en " Confirm you want to \033[1;32m[uninstall]\033[0m FreshJR_QOS [1=Yes 2=No] : "
+				read yn
+				if [ "${yn}" == "1" ] ; then
+					echo ""
+					sh /jffs/scripts/FreshJR_QOS -uninstall
+					echo ""
+					exit
+				fi
+				echo ""
+				echo -e "\033[1;31;7m  FreshJR QOS has NOT been uninstalled \033[0m"
+				echo ""
+				read -n 1 -s -r -p "(Press any key to return)"
+				echo -en "\033c"		#clear screen
+				;;
+			'e'|'E')
+				echo -en "\033[1A\r\033[0K"  
+				return
+				;;
+
 	esac
 	menu
 }
@@ -1997,8 +2034,10 @@ case "$arg1" in
 	if [ "$(nvram get qos_enable)" == "1" ] ; then
 		for pid in $(pidof FreshJR_QOS); do
 			if [ $pid != $$ ]; then
-				kill $pid
-				logger -t "adaptive QOS" -s "Delayed Start Canceled"
+				if ! [ "$(ps -w | grep "${pid}.*\(install\|menu\|rules\|rates\)" | grep -v "grep")" ] ; then		#kill all previous instances of FreshJR_QOS (-install, -menu, -rules, -rates instances are whitelisted)
+					kill $pid
+					logger -t "adaptive QOS" -s "Delayed Start Canceled"
+				fi
 			fi 
 		done
 
@@ -2103,8 +2142,11 @@ case "$arg1" in
 	;;	
  'install'|'enable')															## INSTALLS AND TURNS ON SCRIPT
 	printf '\e[8;30;120t'		#set height/width of terminal
+	clear
  	chmod 0755 /jffs/scripts/FreshJR_QOS
-	sed -i '/FreshJR_QOS/d' /jffs/scripts/init-start 2>/dev/null									
+	if grep -qs "FreshJR_QOS" /jffs/scripts/init-start ; then
+		sed -i '/FreshJR_QOS/d' /jffs/scripts/init-start 2>/dev/null									
+	fi
 	if [ "/jffs/scripts/FreshJR_QOS_fakeTC" -ef "/bin/tc" ] || [ "/jffs/scripts/FreshJR_QOS_fakeTC" -ef "/usr/sbin/tc" ] ; then		##uninstall previous version FreshJR_QOS_fakeTC if not already uninstalled
 		
 		echo "Old version of FreshJR_QOS_fast(fakeTC) has been Detected"
@@ -2212,8 +2254,19 @@ case "$arg1" in
 	echo 'alias FreshJR_QOS="sh /jffs/scripts/FreshJR_QOS -menu"' >> /jffs/configs/profile.add
 
 	
-	
 	echo -e  "\033[1;32mFreshJR QOS v${version} has been installed \033[0m"
+	echo ""
+	echo -n " Advanced configuration available via: "
+	if [ "$(uname -o)" == "ASUSWRT-Merlin" ] ; then
+		if [ -e "/jffs/scripts/amtm" ] ; then
+			echo -e  "\033[1;32m[ WebUI ]\033[0m or \033[1;32m[ /jffs/scripts/FreshJR_QOS -menu ]\033[0m or \033[1;32m[ amtm ]\033[0m "
+		else
+			echo -e  "\033[1;32m[ WebUI ]\033[0m or \033[1;32m[ /jffs/scripts/FreshJR_QOS -menu ]\033[0m "
+		fi
+	else
+		echo -e  "\033[1;32m[ /jffs/scripts/FreshJR_QOS -menu ]\033[0m "
+	fi
+	
 	[ "$(nvram get qos_enable)" == "1" ] && prompt_restart
 	;;
  'uninstall')																		## UNINSTALLS SCRIPT AND DELETES FILES
@@ -2231,9 +2284,6 @@ case "$arg1" in
 	
 	if [ "$(nvram get script_usbmount)" == "/jffs/scripts/script_usbmount" ] ; then												   #only used on stock ASUS firmware installs
 		nvram unset script_usbmount
-		nvram set fb_comment=""
-		nvram set fb_email_dbg=""
-		nvram commit
 	fi
 	nvram set fb_comment=""
 	nvram set fb_email_dbg=""
@@ -2244,6 +2294,9 @@ case "$arg1" in
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/firewall-start  2>/dev/null
 	sed -i '/FreshJR_QOS/d' /jffs/scripts/script_usbmount 2>/dev/null
 	cru d FreshJR_QOS
+	umount /www/QoS_Stats.asp &> /dev/null 			#suppresses error if present
+	mount -o bind /www/QoS_Stats.asp /www/QoS_Stats.asp	
+	umount /www/QoS_Stats.asp &> /dev/null 
 	;;
  'debug')
 	debug
