@@ -1838,7 +1838,7 @@ update(){
 	echo -e  "\033[1;32mFreshJR QOS v${version} \033[0m"
 	echo "Checking for updates"
 	echo ""
-	url="https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh"
+	url="https://raw.githubusercontent.com/dave14305/FreshJR_QOS/master/FreshJR_QOS.sh"
 	remotever=$(curl -fsN --retry 3 ${url} | grep "^version=" | sed -e s/version=//)
 
 	if [ "$version" != "$remotever" ]; then
@@ -1867,7 +1867,7 @@ update(){
 	echo -e "Installing: FreshJR_QOS_v${remotever}"
 	echo ""
 	echo "Curl Output:"
-	curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o "${webpath}" && sh /jffs/scripts/FreshJR_QOS -install
+	curl "https://raw.githubusercontent.com/dave14305/FreshJR_QOS/master/FreshJR_QOS.sh" -o /jffs/scripts/FreshJR_QOS --create-dirs && curl "https://raw.githubusercontent.com/dave14305/FreshJR_QOS/master/FreshJR_QoS_Stats.asp" -o "${webpath}" && sh /jffs/scripts/FreshJR_QOS -install
 	exit
 }
 
@@ -2339,7 +2339,7 @@ case "$arg1" in
 		fi
     ;;
   'isuptodate')
-		url="https://raw.githubusercontent.com/FreshJR07/FreshJR_QOS/master/FreshJR_QOS.sh"
+		url="https://raw.githubusercontent.com/dave14305/FreshJR_QOS/master/FreshJR_QOS.sh"
 		remotever=$(curl -fsN --retry 3 ${url} | grep "^version=" | sed -e s/version=//)
 		if [ "$version" == "$remotever" ]; then
 			exit 0 		#script IS current
