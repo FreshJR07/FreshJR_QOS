@@ -873,7 +873,7 @@ function eval_rule(rule, CProto, CLport, CRport, CLip, CRip, CCat, CId){
 		return 0;
 	}
 	
-	if ( CProto != rule[1] && rule[1] != "both" )
+	if ( rule[1] && CProto != rule[1] && rule[1] != "both" )
 	{
 		// console.log("protocol mismatch");
 		return 0;
